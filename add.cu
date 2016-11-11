@@ -21,7 +21,7 @@ int main()
 
     printf("2 + 3 = %d \n", c);
 	
-	printf("Errors found: cudaMalloc -> %s, cudaMemcpy -> %s)\n", 
+	printf("Errors found: cudaMalloc -> %s, cudaMemcpy -> %s\n", 
 		   cudaGetErrorString( errorMalloc ),
 		   cudaGetErrorString( errorMemcpy )
 	);
