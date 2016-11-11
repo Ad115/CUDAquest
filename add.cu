@@ -11,11 +11,11 @@ int main()
     int *gpu_c;
 
     // Create memory on device
-    int errorMalloc = cudaMalloc( &gpu_c, sizeof(int) );
+    cudaError_t errorMalloc = cudaMalloc( &gpu_c, sizeof(int) );
     // Call add function on device
     add<<<1,1>>>(2, 3, gpu_c);
     // Copy the result back to the host
-    int errorMemcpy = cudaMemcpy( &c, gpu_c, sizeof(int), cudaMemcpyDeviceToHost );
+    cudaError_t errorMemcpy = cudaMemcpy( &c, gpu_c, sizeof(int), cudaMemcpyDeviceToHost );
     // Free space used on device
     cudaFree(gpu_c);
 
