@@ -19,9 +19,9 @@ int main() {
 	
 	// Abre el archivo para lectura
 	FILE *file = fopen("nombre-edad.tsv", "r"); // Los modos más comunes son:
-												// - Lectura: 'r'
-												// - Escritura: 'w'
-												// - Concatenación: 'c'
+						    // - Lectura: 'r'
+						    // - Escritura: 'w'
+						    // - Concatenación: 'c'
 			
 		char nombre[100]; // Un nombre leído del archivo
 		int edad; // La edad leída del archivo
