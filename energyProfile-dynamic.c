@@ -10,17 +10,13 @@ The energy profile is...BlaBlaBla
 #include <stdlib.h>
 #include <string.h>
 
-#define WINDOW_SIZE 5
+#define WINDOW_SIZE 20
 
 // Function declarations
-int seekToNext(FILE *file, char query);
-char *getLineFrom(FILE *file);
 char *getFASTASequence(char *filename);
 int letterEnergy(char letter);
-void calculateEnergyProfile(char *sequence, 
-                            int windowSize, 
-                            int *saveItHere);
-void printEnergyProfile(int *energyProfile, int profileLength);
+int *getEnergyProfileOf(char *sequence, int windowSize);
+void printEnergyProfile(int *energyProfile, char *sequence, int windowSize);
 
 // Globals
 int N_LETTERS = 4;
@@ -38,20 +34,19 @@ int main() {
     
     char *sequence = getFASTASequence("sequence.fasta");
     
-    // Make sure the sequence was read
-    printf("Sequence read: %s\n", sequence);
     
+    // STEP 2: ---> Calculate the energy profile of the sequence
     
-   /* // STEP 2: ---> Calculate the energy profile of the sequence
-    
-    int profileLength = sequenceLength - WINDOW_SIZE + 1;
-    int energyProfile[ profileLength ];
-    
-    calculateEnergyProfile(sequence, sequenceLength, WINDOW_SIZE, energyProfile);
+    int *energyProfile = getEnergyProfileOf(sequence, WINDOW_SIZE);
     
     // Print the calculated energy profile
-    printEnergyProfile( energyProfile, profileLength );*/
+    printEnergyProfile( energyProfile, sequence, WINDOW_SIZE );
+   
+
+    // END: ---> Free dynamically allocated memory
     
+    free(energyProfile);
+    free(sequence);
     
 } // --- main
 
@@ -81,73 +76,62 @@ int seekToNext(FILE *file, char query) {
 
 
 // --- --- - --- --- - --- --- - --- --- - --- --- - --- --- - --- --
-// Subsection to implement functionality of <<< getFASTASequence >>>
 
 
 #define BUFFER_DEFAULT_SIZE 100
 
-
-typedef struct _Buffer {
-/* A structure intended for use as a dynamic string.
- */
-    char *content;   // The string per se
-    int capacity;// The capacity of the buffer
-    int ocupancy;// The number of characters in the buffer
-    
-} Buffer;
-
-
-Buffer *newBuffer() {
-/* Create a new dynamically allocated Buffer with
- * capacity `capacity` and uninitialized.
- */
-    int bufferCapacity = BUFFER_DEFAULT_SIZE;
-    
-    // Create the structure
-    Buffer *buffer = (Buffer *) malloc( sizeof(buffer) );
-    // Create the inner buffer
-    buffer->content = (char *) malloc( bufferCapacity * sizeof(char) );
-    // Initialize
-    buffer->capacity = bufferCapacity;
-    buffer->ocupancy = 0;
-    
-    return buffer;
-}
-
-void deleteBuffer( Buffer *buffer ) {
-/* Free the space occupied by the buffer
- */
-    free(buffer->content);
-    free(buffer);
-    return;
-}
-
-
-void appendToBuffer(char c, Buffer *buffer) {
-/* Adds the character `c` to the dynamic buffer `buffer`.
- * If there is no space,the buffer is expanded by `BUFFER_SIZE`/2.
+char *readUntilNext(FILE *file, char end) {
+/* Read from the file until `end` or EOF is found.
+ * Returns a dynamically allocated buffer with the characters read (excluding `end` and EOF).
+ * The null terminator is guaranteed to be at the end.
+ * The file is left positioned at the next character after `end` or at EOF.
 */
-    int charsInBuffer = buffer->ocupancy;
-    int bufferCapacity = buffer->capacity;
-
-    // Check if reallocation is needed
-    if ( !(charsInBuffer+1 < bufferCapacity) ) {
-        // A reallocation is needed
-        int newSize = bufferCapacity + BUFFER_DEFAULT_SIZE/2;
-        // Reallocate inner string
-        buffer->content = (char *) realloc(buffer->content, newSize);
-        buffer->capacity = newSize;
-    }
-        
-    // Nope, add it and the terminator
-    buffer->content[ charsInBuffer ] = c;
-    buffer->content[charsInBuffer + 1] = '\0';
-    buffer->ocupancy += 1;
-        
-    return;
+    int charactersCount = 0; // Total read characters (not counts null terminator)
     
-} // --- appendToBuffer
+    // Allocate space for the contents
+    int bufferCapacity = BUFFER_DEFAULT_SIZE;
+    char *buffer = (char *) malloc( bufferCapacity * sizeof(char) );
+    
+    char c;
+    while( 1 ) {
+        // Read a single char from the file
+        c = fgetc(file);
+        
+        // Check for the character
+        if ( c == end || c == EOF ) {
+            // Finished, get out of the loop
+            break;
+            
+        } else {
+            // Append `c` to the line ---
+            
+            // Check if a reallocation is needed
+            if ( !(charactersCount+1 < bufferCapacity) ) {
+                // A reallocation is needed
+                int newSize = bufferCapacity + BUFFER_DEFAULT_SIZE/2;
+                // Reallocate inner string
+                buffer = (char *) realloc(buffer, newSize);
+                bufferCapacity = newSize;
+            }
+                
+            // Append the character and the terminator
+            buffer[ charactersCount ] = c;
+            buffer[charactersCount + 1] = '\0';
+            charactersCount += 1;
+        }
+    }
+    // Redundant (not when charactersCount = 0)
+    buffer[charactersCount] = '\0';
+    
+    // Free the allocated but unneeded space
+    buffer = (char *) realloc(buffer, charactersCount+1);
 
+    return buffer;
+    
+} // --- readUntilNext
+
+
+// --- --- - --- --- - --- --- - --- --- - --- --- - --- --- - --- --
 
 
 char *getLineFrom(FILE *file) {
@@ -155,37 +139,11 @@ char *getLineFrom(FILE *file) {
  * The null terminator is guaranteed to be at the end.
  * Stops reading before EOF or newline character.
 */
-    int charactersCount = 0; // Total read characters (not counts null terminator)
-    
-    //Allocate space for the line
-    Buffer *lineBuffer = newBuffer();
-    
-    char c;
-    while( !feof(file) ) {
-        // Read a single char from the file
-        c = fgetc(file);
-        
-        // Check newline
-        if ( c == '\n') {
-            // Finished, get out of the loop
-            break;
-            
-        } else {
-            // Save to buffer
-            appendToBuffer(c, lineBuffer);
-        }
-    }
-    // Add string terminator
-    appendToBuffer('\0', lineBuffer);
-    
-    // Isolate the inner string and free the structure
-    char *line = lineBuffer->content;
-    free(lineBuffer);
-    
-    return line;
-    
+    return readUntilNext(file, '\n');
 } // --- getLineFrom
 
+
+// --- --- - --- --- - --- --- - --- --- - --- --- - --- --- - --- --
 
 
 char *getFASTASequence(char *filename) {
@@ -208,14 +166,15 @@ char *getFASTASequence(char *filename) {
             seekToNext(file, '\n');
             
             // The next line must be the sequence
-            sequence = getLineFrom(file);
+            sequence = readUntilNext(file, '>');
             
             // Exit the loop & return
             break;
         }
     fclose(file);
     
-    return sequence; // Guaranteed to exist.
+    return sequence; // Guaranteed to exist (worst case: empty string)
+    
 } // --- getFASTASequence
 
 
@@ -239,15 +198,18 @@ int letterEnergy(char letter) {
 } // --- letterEnergy
 
 
+// --- --- - --- --- - --- --- - --- --- - --- --- - --- --- - --- --
 
-void calculateEnergyProfile(char *sequence, 
-                            int windowSize, 
-                            int *saveItHere) {
+
+int *getEnergyProfileOf(char *sequence, int windowSize) {
 /* Calculate the energy profile of the sequence.
- * Save into `saveItHere`, assumes is of an appropriate length.
+ * Returns a dynamically allocated array of energy values 
 */
     int sequenceLength = strlen(sequence);
     int totalWindows = 1 + (sequenceLength - windowSize);
+    
+    // Make space for the values (1 per window)
+    int *energyProfile = (int *) malloc( totalWindows * sizeof(*energyProfile) );
     
     // Calculate each window's energy value
     for (int window=0; window<totalWindows; window++) {
@@ -259,20 +221,33 @@ void calculateEnergyProfile(char *sequence,
             windowEnergy += letterEnergy( sequence[window + i] );
         }
         // Save the window energy
-        saveItHere[window] = windowEnergy;
+        energyProfile[window] = windowEnergy;
         
     }
     
-    return;
+    return energyProfile;
     
-} // --- calculateEnergyProfile
+} // --- getEnergyProfileOf
 
-void printEnergyProfile(int *energyProfile, int profileLength) {
+
+// --- --- - --- --- - --- --- - --- --- - --- --- - --- --- - --- --
+
+
+void printEnergyProfile(int *energyProfile, char *sequence, int windowSize) {
 // Prints the values stored in the energy profile
     
-    for( int i=0; i<profileLength; i++) {
+    int sequenceLength = strlen(sequence);
+    int totalValues = 1 + (sequenceLength - windowSize);
+    
+    // Print the sequence
+    printf("Sequence: %s\n", sequence);
+    
+    // Print the energy values
+    printf("Energy profile:");
+    for( int i=0; i<totalValues; i++) {
         printf("%d ", energyProfile[i]);
     }
     
     printf("\n");
-}
+
+} // --- printEnergyProfile
