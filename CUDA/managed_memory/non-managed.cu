@@ -1,12 +1,13 @@
+#include <stdio.h>
 
 __global__  void  AplusB( int *sum,  int *a,  int *b, int n) {
 /* 
  * Return the sum of the `a` and `b` arrays
  */
     // Fetch the index
-    int i = threadIdx.x;
+    int i = blockIdx.x;
     // Perform the sum
-    ret[i] = a[i] + b[i];
+    sum[i] = a[i] + b[i];
     
 } // ---
 
@@ -22,9 +23,9 @@ int main() {
         // Create the vectors in the HOST
         int *sum, *a, *b;
         
-        sum = malloc( n * sizeof(int) );
-        a = malloc( n * sizeof(int) );
-        b = malloc( n * sizeof(int) );
+        sum = (int *) malloc( n * sizeof(int) );
+        a = (int *) malloc( n * sizeof(int) );
+        b = (int *) malloc( n * sizeof(int) );
         
         // Fill the vectors in the host
         for( int i=0; i<n; i++) {

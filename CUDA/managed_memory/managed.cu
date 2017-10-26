@@ -1,12 +1,14 @@
+#include <stdio.h>
+
 
 __global__  void  AplusB( int *sum,  int *a,  int *b, int n) {
 /* 
  * Return the sum of the `a` and `b` arrays
  */
     // Fetch the index
-    int i = threadIdx.x;
+    int i = blockIdx.x;
     // Perform the sum
-    ret[i] = a[i] + b[i];
+    sum[i] = a[i] + b[i];
     
 } // ---
 
@@ -22,9 +24,9 @@ int main() {
         // Create the vectors (managed memory)
         int *sum, *a, *b;
         
-        sum = cudaMallocManaged( n * sizeof(int) );
-        a = cudaMallocManaged( n * sizeof(int) );
-        b = cudaMallocManaged( n * sizeof(int) );
+        cudaMallocManaged( &sum, n*sizeof(int) );
+        cudaMallocManaged( &a, n*sizeof(int) );
+        cudaMallocManaged( &b, n*sizeof(int) );
         
         // Fill the vectors in the host
         for( int i=0; i<n; i++) {
@@ -39,6 +41,9 @@ int main() {
         // Note how we don't copy TO the DEVICE
     
         AplusB<<< n, 1 >>>(sum, a, b, n);
+
+	// wait for the DEVICE to finish
+	cudaDeviceSynchronize();
         
     
     // <-- Display results
@@ -50,10 +55,10 @@ int main() {
         }
         
         // Free unneeded memory
-        free(sum);
-        free(a);
-        free(b);
+        cudaFree(sum);
+        cudaFree(a);
+        cudaFree(b);
         
-    return  0;
+    return 0;
     
 } // ---
