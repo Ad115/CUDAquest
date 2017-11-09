@@ -277,8 +277,10 @@ int find_word_in_gpu(char *word, char *search_here) {
     
     // Fetch the result
     for (int i=0; i<ref_length; i++) {
+        printf("Found at position %d? : %d\n", i, found_here_tmp[i]);
         if ( found_here_tmp[i] ) {
             found_here = i;
+            break;
         }
     }
     
