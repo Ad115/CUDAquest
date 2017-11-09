@@ -21,14 +21,14 @@
 void validate_arguments(char *argv[], int argc);
 FILE *open_or_die(char *filename, char *mode);
 char *read_line_from(FILE *file);
-int find_word_in_gpu(char *word, char *search_here, int processes);
+int find_word_in_gpu(char *word, char *search_here);
 
 
 // ----------------------------------------------------------------------------
 
 
 // Kernel definition
-__global__ find_word_kernel(char *word, char *search_here, int *found_here, int ref_length) {
+void __global__ find_word_kernel(char *word, char *search_here, int *found_here, int ref_length) {
     /*
      * Search for the given word in the search_here string.
      * At first occurrence, returns the starting position.
@@ -36,17 +36,19 @@ __global__ find_word_kernel(char *word, char *search_here, int *found_here, int 
      */
     
     // The starting position of each thread is it's thread id
-    int start = threadId.x;
+    int start = threadIdx.x;
     
     if (start < ref_length-1) { // Check for a valid position
         
         int found = 1; // Pretend you found it
+        int letters_coincide;
     
         // ---> Check if the word is found from here
         
         for (int j=0; word[j] != '\0'; j++) {
             // Check if the letters coincide
-            found &&= (search_here[start+j] == word[j]);
+            letters_coincide = (search_here[start+j] == word[j]);
+            found = (found && letters_coincide);
         }
         
         // Place your mark
@@ -54,6 +56,7 @@ __global__ find_word_kernel(char *word, char *search_here, int *found_here, int 
         
     }
     
+    return;
 } // --- find_word_kernel
 
 
@@ -85,7 +88,7 @@ int main(int argc, char *argv[]) {
         
     // 2. ---> Search the word in the reference string
         
-        int found_here = find_word_in_gpu(word, search_here, 1000, 1);
+        int found_here = find_word_in_gpu(word, search_here);
     
         
     // 3. ---> Display the results
@@ -236,7 +239,7 @@ char *read_line_from(FILE *file) {
 // --- --- - --- --- - --- --- - --- --- - --- --- - --- --- - --- --
 
 
-int find_word_in_gpu(char *word, char *search_here, int processes) {
+int find_word_in_gpu(char *word, char *search_here) {
     /*
      * Search for the given word in the search_here string.
      * At first occurrence, returns the starting position.
@@ -260,14 +263,16 @@ int find_word_in_gpu(char *word, char *search_here, int processes) {
     
     // Prepare for the arrival of the result
     int *found_here_tmp;
-    cudaMallocManaged(&found_here_tmp, (ref_length * sizeof(int));
+    cudaMallocManaged(&found_here_tmp, ref_length * sizeof(int));
     for (int i=0; i < ref_length; sizeof(int)) {
         found_here_tmp[i] = 0;
     }
     
     
     // Launch the Kernel
-    find_word_kernel<<<processes, 1>>>(word_tmp, ref_tmp, found_here_tmp, ref_length);
+    printf("Launching %d threads in a single block\n", ref_length);
+    
+    find_word_kernel<<<ref_length, 1>>>(word_tmp, ref_tmp, found_here_tmp, ref_length);
     cudaDeviceSynchronize();
     
     // Fetch the result
