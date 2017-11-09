@@ -40,6 +40,7 @@ void __global__ find_word_kernel(char *word, char *search_here, int *found_here,
     
     if (start < ref_length-1) { // Check for a valid position
         
+        printf("Process starting from position %d\nword: %s\nstring: %s", start, word, string);
         int found = 1; // Pretend you found it
         int letters_coincide;
     
