@@ -40,7 +40,7 @@ void __global__ find_word_kernel(char *word, char *search_here, int *found_here,
     
     if (start < ref_length-1) { // Check for a valid position
         
-        printf("Process starting from position %d\nword: %s\nstring: %s", start, word, search_here);
+        //printf("Process starting from position %d\n\tword: %s\n\tstring: %s\n", start, word, search_here);
         int found = 1; // Pretend you found it
         int letters_coincide;
     
@@ -278,7 +278,6 @@ int find_word_in_gpu(char *word, char *search_here) {
     
     // Fetch the result
     for (int i=0; i<ref_length; i++) {
-        printf("Found at position %d? : %d\n", i, found_here_tmp[i]);
         if ( found_here_tmp[i] ) {
             found_here = i;
             break;
