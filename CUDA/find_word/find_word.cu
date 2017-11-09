@@ -273,7 +273,7 @@ int find_word_in_gpu(char *word, char *search_here) {
     // Launch the Kernel
     printf("Launching %d threads in a single block\n", ref_length);
     
-    find_word_kernel<<<ref_length, 1>>>(word_tmp, ref_tmp, found_here_tmp, ref_length);
+    find_word_kernel<<<1, ref_length>>>(word_tmp, ref_tmp, found_here_tmp, ref_length);
     cudaDeviceSynchronize();
     
     // Fetch the result
