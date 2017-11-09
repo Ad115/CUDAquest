@@ -264,7 +264,7 @@ int find_word_in_gpu(char *word, char *search_here) {
     // Prepare for the arrival of the result
     int *found_here_tmp;
     cudaMallocManaged(&found_here_tmp, ref_length * sizeof(int));
-    for (int i=0; i < ref_length; sizeof(int)) {
+    for (int i=0; i < ref_length; i++) {
         found_here_tmp[i] = 0;
     }
     
