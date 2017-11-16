@@ -78,7 +78,7 @@ void __global__ find_word_kernel(char *word, char *search_here, int ref_length, 
         }
         
         // Wait until everyone finishes
-        __syncthreads()
+        __syncthreads();
         
     // 2. --- > Reduce the result on every thread
         
