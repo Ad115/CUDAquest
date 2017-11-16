@@ -84,7 +84,7 @@ void __global__ find_word_kernel(char *word, char *search_here, int ref_length, 
         
     
         // ---> Reduce the results to one per block
-        int threads_per_block;
+        int threads_per_block = blockDim.x;
         int i = (threads_per_block+1)/2;
         
         while( i != 0 ) { 
@@ -106,7 +106,7 @@ void __global__ find_word_kernel(char *word, char *search_here, int ref_length, 
         
         // ---> Save the block's reduction and return
         
-        if (threadIdx.x = 0) {
+        if (threadIdx.x == 0) {
             result[blockIdx.x] = found_here[shared_idx];
         }
     
@@ -230,7 +230,7 @@ int find_word_in_gpu(char *word, char *search_here) {
     // 4. ---> Cleanup and return
     
         // Free unneeded memory
-        cudaFree(found_here_tmp);
+        cudaFree(partial_results);
         cudaFree(word_tmp);
         cudaFree(str_tmp);
         
