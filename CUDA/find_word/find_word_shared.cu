@@ -97,11 +97,11 @@ void __global__ find_word_kernel(char *word, char *search_here, int ref_length, 
                     // Check if it was found here
                     found_here[shared_idx] = (found_here[shared_idx] ? found_here[shared_idx] : found_here[2*i]);
                 }
-                
-                // Prepare the next reduction
-                i/=2;
-                __syncthreads();
             }
+            
+            // Prepare the next reduction
+            i/=2;
+            __syncthreads();
         }
         
         // ---> Save the block's reduction and return
@@ -214,7 +214,6 @@ int find_word_in_gpu(char *word, char *search_here) {
         
         // Launch the kernel
         find_word_kernel<<<blocks, THREADS_PER_BLOCK>>>(word_tmp, str_tmp, str_length, partial_results);
-        
         cudaDeviceSynchronize();
     
         
