@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
     
     // 1. ---> Find the input file and the word to search
     
-        char *long_str = argv[1];
+        char *search_here = argv[1];
         char *word = argv[2]
         
         
@@ -143,8 +143,8 @@ int find_word_in_gpu(char *word, char *search_here) {
         
         // Prepare for the arrival of the result
         int *found_here_tmp;
-        cudaMallocManaged(&found_here_tmp, ref_length * sizeof(int));
-        for (int i=0; i < ref_length; i++) {
+        cudaMallocManaged(&found_here_tmp, str_length * sizeof(int));
+        for (int i=0; i < str_length; i++) {
             found_here_tmp[i] = 0;
         }
     
@@ -157,10 +157,10 @@ int find_word_in_gpu(char *word, char *search_here) {
         // Calculate the blocks needed for that
         int blocks = (total_threads + THREADS_PER_BLOCK-1) / THREADS_PER_BLOCK;
         
-        printf("Launching %d threads in %d blocks\n", THREADS_PER_BLOCK, );
+        printf("Launching %d threads in %d blocks\n", THREADS_PER_BLOCK, blocks);
         
         // Launch the kernel
-        find_word_kernel<<<blocks, THREADS_PER_BLOCK>>>(word_tmp, ref_tmp, found_here_tmp, ref_length);
+        find_word_kernel<<<blocks, THREADS_PER_BLOCK>>>(word_tmp, str_tmp, found_here_tmp, str_length);
         
         cudaDeviceSynchronize();
     
