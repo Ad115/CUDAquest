@@ -86,17 +86,19 @@ void __global__ find_word_kernel(char *word, char *search_here, int ref_length, 
         // ---> Reduce the results to one per block
         int threads_per_block = blockDim.x;
         int i = (threads_per_block+1)/2;
+        printf("Reduction started: thread %d, found_here[here] = %d\n", threadIdx.x, found_here[shared_idx]);
         
         while( i != 0 ) { 
-            printf("Reduction started: thread %d, found_here[here] = %d\n", threadIdx.x, found_here[shared_idx]);
+            
             
             // Reduce halving the results on each iteration
             if (threadIdx.x < i) {
                 
                 // Check if the entries are within reach
-                if ( 2*i < threads_per_block ) {
+                if ( shared_idx + i < threads_per_block ) {
+                    printf("Reducing entries %d and %d (%d, %d). Thread %d.", shared_idx, shared_idx+i, found_here[shared_idx], found_here[shared_idx+i], threadIdx.x);
                     // Check if it was found here
-                    found_here[shared_idx] = (found_here[shared_idx] ? found_here[shared_idx] : found_here[2*i]);
+                    found_here[shared_idx] = (found_here[shared_idx] ? found_here[shared_idx] : found_here[shared_idx+i]);
                 }
             }
             
