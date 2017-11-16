@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
     // 1. ---> Find the input file and the word to search
     
         char *search_here = argv[1];
-        char *word = argv[2]
+        char *word = argv[2];
         
         
     // 2. ---> Search the word in the reference string
@@ -166,7 +166,7 @@ int find_word_in_gpu(char *word, char *search_here) {
     
         
     // 3. --- > Analyze the result
-        for (int i=0; i<ref_length; i++) {
+        for (int i=0; i<str_length; i++) {
             if ( found_here_tmp[i] ) {
                 found_here = i;
                 break;
@@ -179,7 +179,7 @@ int find_word_in_gpu(char *word, char *search_here) {
         // Free unneeded memory
         cudaFree(found_here_tmp);
         cudaFree(word_tmp);
-        cudaFree(ref_tmp);
+        cudaFree(str_tmp);
         
     return found_here;
     
