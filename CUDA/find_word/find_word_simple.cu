@@ -98,9 +98,7 @@ int main(int argc, char *argv[]) {
         }
         
         
-    // 4. ---> Cleanup
-    
-        free(search_here);
+    // 4. ---> Finish!
         
     return 0;
         
