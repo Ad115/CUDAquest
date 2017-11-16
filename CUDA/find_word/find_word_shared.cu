@@ -46,10 +46,8 @@ void __global__ find_word_kernel(char *word, char *search_here, int ref_length, 
         int shared_idx = threadIdx.x;
         
     
-    // 1. --- > Search for the word
+    // 2. --- > Search the word
     
-        
-        
         if (start < ref_length-1) { // Check for a valid position
             
             int found = 1; // Pretend you found it
@@ -80,8 +78,9 @@ void __global__ find_word_kernel(char *word, char *search_here, int ref_length, 
         // Wait until everyone finishes
         __syncthreads();
         
-    // 2. --- > Reduce the result on every thread
         
+        
+    // 3. --- > Reduce the result on every thread
     
         // ---> Reduce the results to one per block
         int threads_per_block = blockDim.x;
@@ -105,7 +104,8 @@ void __global__ find_word_kernel(char *word, char *search_here, int ref_length, 
             __syncthreads();
         }
         
-        // ---> Save the block's reduction and return
+        
+    // 4. --- > Save the block's reduction and return
         
         if (threadIdx.x == 0) {
             result[blockIdx.x] = found_here[shared_idx];
