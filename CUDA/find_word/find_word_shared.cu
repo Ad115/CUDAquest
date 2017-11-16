@@ -88,6 +88,7 @@ void __global__ find_word_kernel(char *word, char *search_here, int ref_length, 
         int i = (threads_per_block+1)/2;
         
         while( i != 0 ) { 
+            printf("Reduction started: thread %d, found_here[here] = %d\n", threadIdx.x, found_here[shared_idx]);
             
             // Reduce halving the results on each iteration
             if (threadIdx.x < i) {
