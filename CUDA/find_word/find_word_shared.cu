@@ -96,7 +96,7 @@ void __global__ find_word_kernel(char *word, char *search_here, int ref_length, 
                 
                 // Check if the entries are within reach
                 if ( shared_idx + i < threads_per_block ) {
-                    printf("Reducing entries %d and %d (%d, %d). Thread %d.", shared_idx, shared_idx+i, found_here[shared_idx], found_here[shared_idx+i], threadIdx.x);
+                    printf("Reducing entries %d and %d (%d, %d). Thread %d.\n", shared_idx, shared_idx+i, found_here[shared_idx], found_here[shared_idx+i], threadIdx.x);
                     // Check if it was found here
                     found_here[shared_idx] = (found_here[shared_idx] ? found_here[shared_idx] : found_here[shared_idx+i]);
                 }
@@ -110,6 +110,7 @@ void __global__ find_word_kernel(char *word, char *search_here, int ref_length, 
         // ---> Save the block's reduction and return
         
         if (threadIdx.x == 0) {
+            printf("Reduced block %d: %d\n", blockIdx.x, found_here[shared_idx]);
             result[blockIdx.x] = found_here[shared_idx];
         }
     
@@ -223,7 +224,7 @@ int find_word_in_gpu(char *word, char *search_here) {
     // 3. --- > Analyze the result
         for (int i=0; i<blocks; i++) {
             if ( partial_results[i] ) {
-                found_here = i;
+                found_here = partial_results[i];
                 break;
             }
         }
